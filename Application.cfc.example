@@ -1,0 +1,66 @@
+
+<!--- Application.cfc implementing the ColdFusion CAS Client Component v1.0
+      By: John Watson
+          jwatson2@ucmerced.edu
+          University of California, Merced
+--->
+<cfcomponent output="false">
+  <cfset THIS.name = "CFCASEx" />
+  <cfset THIS.sessionManagement = true />
+  <cfset THIS.clientManagement = true />
+  <cfset THIS.setClientCookies = true />
+  <cfset THIS.setDomainCookies = false />
+  <cfset THIS.loginStorage = "session" />
+	<cfobject name="util" component="cfc.util" />
+	
+	<!--- Run when application starts up --->
+	<cffunction name="onApplicationStart" returnType="boolean" output="true">
+		<cfset Application.dateInitialized = now() />
+		<cfset Application.util = util />
+		<cfset Application.ad_server = "your-ad-server.com"/>
+		<cfset Application.search_filter = "(&amp/>(objectClass=user)(SAMAccountName=%s))"/>
+		<cfset Application.base_dn = "BASE=base,DN=dn,GOES=goes,HERE=here"/>
+
+		<cfset Application.CAS_Server = "https://your-cas-server.com"/>
+		<cfset Application.ServiceApp = "http://your-web-app-service.com/path" />
+		<cfset Application.ServiceCASPath = "cfm/login.cfm" />
+		<cfset Application.ServiceSuccessPath = "../index.html##auth" />
+		<cfset Application.ServiceErrorPath = "../error.html" />
+		<cfset Application.CAS_Logout = "#Application.CAS_Server#logout" />
+		<cfset Application.LDAPBindUser = "bind_user" />
+		<cfset Application.LDAPBindPassword = "bind_password" />
+		<cfreturn true>
+	</cffunction>
+
+	<!--- Run when application stops --->
+	<cffunction name="onApplicationEnd" returnType="void" output="false">
+		<cfargument name="applicationScope" required="true">
+	</cffunction>
+
+	<!--- Fired when user requests a CFM that doesn't exist. --->
+	<cffunction name="onMissingTemplate" returnType="boolean" output="false">
+		<cfargument name="targetpage" required="true" type="string">
+		<cfreturn true>
+	</cffunction>
+	
+	<!--- Run before the request is processed --->
+	<cffunction name="onRequestStart" access="public" returnType="boolean" output="true">
+		<cfargument name="thePage" type="string" required="true" />
+		<cfset app_session_restart = false />
+		<!--- maintenance code --->
+		<!---
+		<cfset var LOCAL = StructNew() />
+		<cfheader statuscode="503" statustext="Service Temporarily Unavailable"/>
+		<cfheader name="retry-after" value="3600" />
+		<cfinclude template="maintenance.html" />
+		<cfreturn false />
+		--->
+		
+		<!--- live code --->
+		<cfif StructKeyExists(URL,"app_force_refresh")>
+			<cfset OnApplicationStart()>
+		</cfif>
+		<cfreturn true>
+	</cffunction>
+  
+</cfcomponent>
